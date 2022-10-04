@@ -18,9 +18,26 @@ end
 -- Current function name -
 --------------------------
 local ts = require('nvim-treesitter')
+local ts_parser = require('nvim-treesitter.parsers')
 local function get_cursor_ctx()
+  if not ts_parser.has_parser() then
+    return ''
+  end
+
+  local pattern = {'class', 'function', 'method'}
+  local extra_patterns = {
+    rust = {'struct', 'impl'},
+  }
+
+  local ft = vim.bo.filetype
+  if extra_patterns[ft] ~= nil then
+    for _, val in ipairs(extra_patterns[ft]) do
+      table.insert(pattern, #pattern + 1, val)
+    end
+  end
+
   opts = {
-    type_patterns={'class', 'function', 'method', 'struct', 'impl'},
+    type_patterns=pattern,
     separator='.',
     transform_fn=function(line)
       local res = line:gsub('%s*[%[%(%{%:]*%s*$', '')
