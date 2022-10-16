@@ -26,20 +26,22 @@ local res = require('packer').startup(function(use)
     '&& cmake --install build --prefix build'
   }
   use {'nvim-treesitter/nvim-treesitter',
-  run = function()
-    require('nvim-treesitter.install').update({ with_sync = true })
-  end}
+    run = function()
+      require('nvim-treesitter.install').update({ with_sync = true })
+    end}
 
   -- Editor appearance
   use 'rakr/vim-one'
-  use 'nvim-lua/lsp-status.nvim'
   use {
     'nvim-lualine/lualine.nvim',
     requires = { 'kyazdani42/nvim-web-devicons', opt = true }
   }
 
-  -- use 'itchyny/lightline.vim'
   use 'kyazdani42/nvim-web-devicons'
+  use({
+    "iamcco/markdown-preview.nvim",
+    run = function() vim.fn["mkdp#util#install"]() end,
+  })
 
   -- Git
   use 'tpope/vim-fugitive'
