@@ -8,8 +8,8 @@ if [[ -z $(command -v stow) ]]; then
     exit 1;
 fi
 
-for dir in $(find . -maxdepth 1 -mindepth 1 -type d | sed 's:^\./::'); do
-    stow --ignore "README.md" --ignore "install.sh" ${dir}
+for dir in $(find . -maxdepth 1 -mindepth 1 -type d -not -name ".git" | sed 's:^\./::'); do
+    stow --ignore "README.md" --ignore "install.sh" --ignore "Dockerfile" "$dir"
     if [[ -f "$dir/install.sh" ]]; then
         echo "Executing install script for $dir"
         . "$dir/install.sh"
