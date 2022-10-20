@@ -1,6 +1,10 @@
 -------------
 -- General --
 -------------
+if not pcall(require, "dap") then
+  return
+end
+
 local dap = require('dap')
 
 local set_condition_bp = function()

@@ -1,3 +1,9 @@
+local ok_line, _ = pcall(require, "lualine")
+
+if not ok_line then
+  return
+end
+
 local function mode_section ()
   local branch = vim.fn.system("git branch --show-current 2> /dev/null | tr -d '\r\n'")
   if branch ~= '' then
@@ -17,35 +23,39 @@ end
 --------------------------
 -- Current function name -
 --------------------------
-local ts = require('nvim-treesitter')
-local ts_parser = require('nvim-treesitter.parsers')
-local function get_cursor_ctx()
-  if not ts_parser.has_parser() then
-    return ''
-  end
+local ok_ts, ts = pcall(require, "nvim-treesitter")
+local get_cursor_ctx = function () return '' end
 
-  local pattern = {'class', 'function', 'method'}
-  local extra_patterns = {
-    rust = {'struct', 'impl'},
-  }
-
-  local ft = vim.bo.filetype
-  if extra_patterns[ft] ~= nil then
-    for _, val in ipairs(extra_patterns[ft]) do
-      table.insert(pattern, #pattern + 1, val)
+if ok_ts then
+  local ts_parser = require('nvim-treesitter.parsers')
+  local get_cursor_ctx = function ()
+    if not ts_parser.has_parser() then
+      return ''
     end
-  end
 
-  opts = {
-    type_patterns=pattern,
-    separator='.',
-    transform_fn=function(line)
-      local res = line:gsub('%s*[%[%(%{%:]*%s*$', '')
-      local res = vim.fn.split(vim.fn.split(res, '(')[1], ' ')
-      return res[#res]
+    local pattern = {'class', 'function', 'method'}
+    local extra_patterns = {
+      rust = {'struct', 'impl'},
+    }
+
+    local ft = vim.bo.filetype
+    if extra_patterns[ft] ~= nil then
+      for _, val in ipairs(extra_patterns[ft]) do
+        table.insert(pattern, #pattern + 1, val)
+      end
     end
-  }
-  return ts.statusline(opts)
+
+    opts = {
+      type_patterns=pattern,
+      separator='.',
+      transform_fn=function(line)
+        local res = line:gsub('%s*[%[%(%{%:]*%s*$', '')
+        local res = vim.fn.split(vim.fn.split(res, '(')[1], ' ')
+        return res[#res]
+      end
+    }
+    return ts.statusline(opts)
+  end
 end
 
 -----------------
