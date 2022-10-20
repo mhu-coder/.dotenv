@@ -1,25 +1,12 @@
 -- Package manager and packages
-local home = os.getenv("HOME")
-local packpath = home .. "/.local/share/nvim/site/pack/packer/start/packer.nvim"
-local has_packer = vim.fn.isdirectory(packpath)
-
-local git_packer = "https://github.com/wbthomason/packer.nvim"
-if not has_packer then
-  local code = os.execute(
-  "git clone --depth 1 " .. git_packer .. " " .. packpath
-  )
-  if code ~= 0 then
-    print("Error cloning packer")
-  else
-    has_packer = true
-  end
+if require('plugins') then
+  return
 end
 
-local colorscheme = "darkblue"
-if has_packer then
-  require('plugins')
-  colorscheme = "one"
-end
+require('lsp_config')
+
+local colorscheme = "one"
+
 vim.cmd("colorscheme " .. colorscheme)
 
 -- Other vim config stuff
