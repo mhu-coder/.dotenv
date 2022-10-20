@@ -1,13 +1,17 @@
 # Setup info
 
-This configuration requires neovim >= 0.5.
+This configuration requires neovim >= 0.7.
 
 ## External dependencies
 
 | Program | Plugins                                   |
 |:-------:|-------------------------------------------|
-| Nodejs  | pyright LSP (<15.x) <br> markdown preview <br> katex|
-| Python  | cmake LSP |
+| Nodejs  |  pyright LSP (<15.x) <br> markdown preview <br> katex |
+| Python  |                                             cmake LSP |
+| ripgrep |                                                       |
+| cmake   |                                          to build fzf |
+| devicon |                   icons for telescope and status line |
+| debugpy |                                        For python dap |
 
 ## Language servers
 
@@ -53,3 +57,7 @@ Install `cmake-language-server`: `pip install cmake-language-server`
 Run the ex-command `:checkhealth` to get a health diagnosis.
 
 [sumneko-lua]: https://github.com/sumneko/lua-language-server
+
+## Treesitter
+Once tree sitter is installed, install the parsers for the languages you use,
+e.g. `:TSInstall python`, run from vim.
