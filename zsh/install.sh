@@ -1,11 +1,25 @@
 #!/bin/bash
 
+if ! command -v zsh --version &> /dev/null; then
+    echo "zsh is not installed. Please install then execute this script"
+    exit 1
+fi
+
+if [[ ! -f "$HOME/.zshrc" ]]; then
+    echo ".zshrc not found in $HOME. Aborting"
+    exit 1
+fi
+
+if [[ ! -d "$HOME/oh-my-zsh" ]]; then
+    echo "Installing oh-my-zsh"
+    sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+fi
+
+source $HOME/.zshrc
+
 zsh_dir=$ZSH_CUSTOM
 
-if [[ ! -d "$zsh_dir" ]]; then
-    echo "Error: $zsh_dir does not exist. Are you sure it is correct?"
-    exit 1;
-fi
+mkdir -p $zsh_dir
 
 declare -A packages
 packages=(
