@@ -1,73 +1,130 @@
--- Plugin config. Requires packer to be available
+local lazypath = vim.fn.stdpath 'data' .. '/lazy/lazy.nvim'
+if not vim.loop.fs_stat(lazypath) then
+  vim.fn.system {
+    'git',
+    'clone',
+    '--filter=blob:none',
+    'https://github.com/folke/lazy.nvim.git',
+    '--branch=stable',
+    lazypath,
+  }
+end
+vim.opt.rtp:prepend(lazypath)
 
-local ensure_packer = function()
-  local fn = vim.fn
-  local install_path = fn.stdpath('data')..'/site/pack/packer/start/packer.nvim'
-  if fn.empty(fn.glob(install_path)) > 0 then
-    fn.system({'git', 'clone', '--depth', '1', 'https://github.com/wbthomason/packer.nvim', install_path})
-    vim.cmd [[packadd packer.nvim]]
-    return true
-  end
-  return false
+local function git_plugs ()
+  return {
+    'tpope/vim-fugitive',
+    {
+      'lewis6991/gitsigns.nvim',
+      opts = {
+        signs = {
+          add = { text = '+' },
+          change = { text = '~' },
+          delete = { text = '_' },
+          topdelete = { text = '‾' },
+          changedelete = { text = '~' },
+        },
+      },
+    },
+    { -- Add indentation guides even on blank lines
+      'lukas-reineke/indent-blankline.nvim',
+      main = "ibl",
+      -- Enable `lukas-reineke/indent-blankline.nvim`
+      opts = {
+        indent = {char = '┊'},
+        whitespace = {remove_blankline_trail = false},
+      },
+    },
+  }
 end
 
-local packer_bootstrap = ensure_packer()
-
-local res = require('packer').startup(function(use)
-  use 'wbthomason/packer.nvim'
-
-  -- LSP
-  use 'neovim/nvim-lspconfig'
-  use 'hrsh7th/nvim-cmp' -- Autocompletion plugin
-  use 'hrsh7th/cmp-nvim-lsp' -- LSP source for nvim-cmp
-  use 'L3MON4D3/LuaSnip' -- Snippets plugin
-  use 'saadparwaiz1/cmp_luasnip'
-  -- DAP
-  use 'mfussenegger/nvim-dap'
-  use 'rcarriga/nvim-dap-ui'
-  use 'theHamsta/nvim-dap-virtual-text'
-  use 'nvim-telescope/telescope-dap.nvim'
-  use 'mfussenegger/nvim-dap-python'
-
-  -- Code exploration
-  use {'nvim-telescope/telescope.nvim', tag='0.1.0',
-        requires = {{'nvim-lua/plenary.nvim'}}}
-  use {
-    'nvim-telescope/telescope-fzf-native.nvim',
-    run='cmake -S . -B build -DCMAKE_BUILD_TYPE=Release ' ..
-    '&& cmake --build build --config Release ' ..
-    '&& cmake --install build --prefix build'
+local function ui_plugs()
+  return {
+    'rakr/vim-one',
+    {
+      'nvim-lualine/lualine.nvim',
+      dependencies = {'kyazdani42/nvim-web-devicons'}
+    },
+    -- Detect tabstop and shiftwidth automatically
+    'tpope/vim-sleuth',
   }
-  use {'nvim-treesitter/nvim-treesitter',
-    run = function()
-      require('nvim-treesitter.install').update({ with_sync = true })
-    end}
+end
 
-  -- Editor appearance
-  use 'rakr/vim-one'
-  use {
-    'nvim-lualine/lualine.nvim',
-    requires = { 'kyazdani42/nvim-web-devicons', opt = true }
+local function code_plugs()
+  return {
+    {
+      'neovim/nvim-lspconfig',
+      dependencies = {
+        -- Auto install LSPs to stdpath for nvim
+        'williamboman/mason.nvim',
+        'williamboman/mason-lspconfig.nvim',
+        -- Useful status updates for LSP
+        -- NOTE: `opts = {}` is the same as calling `require('fidget').setup({})`
+        { 'j-hui/fidget.nvim', tag = "legacy", event = "LspAttach", opts = {} },
+        -- Additional lua configuration, makes nvim stuff amazing!
+        'folke/neodev.nvim',
+      },
+    },
+    {
+      'mfussenegger/nvim-dap',
+      dependencies = {
+        'williamboman/mason.nvim',
+        'jay-babu/mason-nvim-dap.nvim',
+      },
+    },
+    {
+      'simrat39/rust-tools.nvim',
+    },
+    {
+      'rcarriga/nvim-dap-ui',
+      'mfussenegger/nvim-dap-python'
+    },
+    { -- Autocompletion
+      'hrsh7th/nvim-cmp',
+      -- 'saadparwaiz1/cmp_luasnip'  for completion source if wanted
+      dependencies = {'hrsh7th/cmp-nvim-lsp', 'L3MON4D3/LuaSnip'},
+    },
+    -- "gc" to comment visual regions/lines
+    { 'numToStr/Comment.nvim', opts = {} },
+    { -- Highlight, edit, and navigate code
+      'nvim-treesitter/nvim-treesitter',
+      dependencies = {
+        'nvim-treesitter/nvim-treesitter-textobjects',
+      },
+      config = function()
+        pcall(require('nvim-treesitter.install').update { with_sync = true })
+      end,
+    },
   }
+end
 
-  use 'kyazdani42/nvim-web-devicons'
-  use({
-    "iamcco/markdown-preview.nvim",
-    run = function() vim.fn["mkdp#util#install"]() end,
-  })
+local function util_plugs()
+  return {
+    { 'folke/which-key.nvim', opts = {} },
+    -- Fuzzy Finder (files, lsp, etc)
+    {
+      'nvim-telescope/telescope.nvim',
+      version = '*',
+      dependencies = { 'nvim-lua/plenary.nvim' }
+    },
+    -- Fuzzy Finder Algorithm which requires local dependencies to be built.
+    -- Only load if `make` is available. Make sure you have the system
+    -- requirements installed.
+    {
+      'nvim-telescope/telescope-fzf-native.nvim',
+      build = 'make',
+      cond = function()
+        return vim.fn.executable 'make' == 1
+      end,
+    },
+    -- Useful plugin to show you pending keybinds.
+    { 'folke/which-key.nvim', opts = {} },
+  }
+end
 
-  -- Git
-  use 'tpope/vim-fugitive'
-  use 'airblade/vim-gitgutter'
-
-  -- Misc
-  use 'tpope/vim-surround'
-  use 'vimwiki/vimwiki'
-
-  if packer_bootstrap then
-    require('packer').sync()
-    print('Please restart nvim to load the plugins')
-  end
-end)
-
-return packer_bootstrap
+require('lazy').setup({
+  git_plugs(),
+  ui_plugs(),
+  code_plugs(),
+  util_plugs(),
+}, {})

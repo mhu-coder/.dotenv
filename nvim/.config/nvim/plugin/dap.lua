@@ -2,10 +2,12 @@
 -- General --
 -------------
 if not pcall(require, "dap") then
+  print("nvim-dap is not installed! Aborting...")
   return
 end
 
 local dap = require('dap')
+dap.set_log_level('INFO')
 
 local set_condition_bp = function()
   dap.set_breakpoint(vim.fn.input('Breakpoint condition: '))
@@ -20,6 +22,7 @@ local keymaps = {
   ['<F2>']=dap.step_over,
   ['<F3>']=dap.step_out,
   ['<F4>']=dap.continue,
+  ['<F9>']=dap.terminate,
   ['<leader>db']=dap.toggle_breakpoint,
   ['<leader>dB']=set_condition_bp,
   ['<leader>dl']=set_logpoint,
@@ -49,3 +52,28 @@ if venv ~= nil then
     vim.keymap.set('n', keymap, fun, opts)
   end
 end
+
+
+----------
+-- Rust --
+----------
+dap.adapters.codelldb = {
+  type = 'server',
+  port = '${port}',
+  executable = {
+    command = '/usr/local/bin/codelldb',
+    args = {"--port", "${port}"},
+  }
+}
+dap.configurations.rust = {
+  {
+    name = "Rust debug",
+    type = "codelldb",
+    request = "launch",
+    program = function()
+      return vim.fn.input('Path to executable: ', vim.fn.getcwd() .. '/target/debug/', 'file')
+    end,
+    cwd = '${workspaceFolder}',
+    stopOnEntry = true,
+  }
+}

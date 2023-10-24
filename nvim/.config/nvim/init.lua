@@ -1,13 +1,16 @@
--- Package manager and packages
-if require('plugins') then
-  return
+-- nvim init.lua
+
+-- Clear useless default keymaps
+local useless_keys = {"<C-c>"}
+for _, val in pairs(useless_keys) do
+  vim.api.nvim_set_keymap("i", val, "<Nop>", {noremap = true})
 end
 
+-- Package manager and packages
+require('plugins')
 require('lsp_config')
 
-local colorscheme = "one"
-
-vim.cmd("colorscheme " .. colorscheme)
+vim.cmd("colorscheme one")
 
 -- Other vim config stuff
 vim.cmd([[
@@ -16,7 +19,7 @@ vim.cmd([[
   syntax on
   set shiftwidth=4 tabstop=4 softtabstop=4 expandtab autoindent smartindent
   set number relativenumber cursorline
-  set textwidth=80 colorcolumn=81
+  set textwidth=88 colorcolumn=89
   set termguicolors
   set background=dark
   highlight ColorColumn guibg='Red'

@@ -28,7 +28,7 @@ local get_cursor_ctx = function () return '' end
 
 if ok_ts then
   local ts_parser = require('nvim-treesitter.parsers')
-  local get_cursor_ctx = function ()
+  get_cursor_ctx = function ()
     if not ts_parser.has_parser() then
       return ''
     end
