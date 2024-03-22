@@ -77,6 +77,11 @@ local function code_plugs()
     },
     {
       'rcarriga/nvim-dap-ui',
+      dependencies = {
+        "mfussenegger/nvim-dap", "nvim-neotest/nvim-nio"
+      },
+    },
+    {
       'mfussenegger/nvim-dap-python'
     },
     { -- Autocompletion
