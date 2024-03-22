@@ -16,7 +16,7 @@ local function file_progress ()
   local pos = vim.api.nvim_win_get_cursor(0)
   local total = vim.api.nvim_buf_line_count(0)
   local prog = math.floor(pos[1] / total * 100)
-  local res = pos[2] + 1 .. ' : ' .. total .. ' (' .. prog .. '%%)' 
+  local res = pos[2] + 1 .. ' : ' .. total .. ' (' .. prog .. '%%)'
   return res
 end
 
@@ -45,12 +45,12 @@ if ok_ts then
       end
     end
 
-    opts = {
+    local opts = {
       type_patterns=pattern,
       separator='.',
       transform_fn=function(line)
         local res = line:gsub('%s*[%[%(%{%:]*%s*$', '')
-        local res = vim.fn.split(vim.fn.split(res, '(')[1], ' ')
+        res = vim.fn.split(vim.fn.split(res, '(')[1], ' ')
         return res[#res]
       end
     }
@@ -73,7 +73,7 @@ require('lualine').setup {
     lualine_a = { mode_section },
     lualine_b = {'filename'},
     lualine_c = { get_cursor_ctx },
-    lualine_x = { { 'diagnostics', sources = {'nvim_lsp'} } }, 
+    lualine_x = { { 'diagnostics', sources = {'nvim_lsp'} } },
     lualine_y = {'encoding', 'fileformat', 'filetype' },
     lualine_z = { file_progress },
   }
