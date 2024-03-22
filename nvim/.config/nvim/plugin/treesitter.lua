@@ -46,14 +46,15 @@ require('nvim-treesitter.configs').setup {
         ['[E'] = '@class.outer',
       },
     },
-    swap = {
-      enable = true,
-      swap_next = {
-        ['<leader>s'] = '@parameter.inner',
-      },
-      swap_previous = {
-        ['<leader>S'] = '@parameter.inner',
-      },
-    },
+    swap = { enable = false },
   },
+  sync_install = false,
+  ignore_install = {},
 }
+
+-- configure folds to rely on treesitter
+vim.cmd([[
+  set foldmethod=expr
+  set foldexpr=nvim_treesitter#foldexpr()
+  set nofoldenable
+]])
