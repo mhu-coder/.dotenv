@@ -2,15 +2,15 @@
 local capabilities = vim.lsp.protocol.make_client_capabilities()
 capabilities = require('cmp_nvim_lsp').default_capabilities(capabilities)
 
-local diagnostic_keymap = {
-  ['<leader>e'] = vim.diagnostic.open_float,
-  ['<leader>k'] = vim.diagnostic.goto_prev,
-  ['<leader>j'] = vim.diagnostic.goto_next,
-  ['<leader>q'] = vim.diagnostic.setloclist,
+local wk = require("which-key")
+local diag_keymap = {
+  name = "diagnostic",
+  e = {vim.diagnostic.open_float, "Jump into diagnostic window"},
+  k = {vim.diagnostic.goto_prev, "Go to previous diagnostic"},
+  j = {vim.diagnostic.goto_next, "Go to next diagnostic"},
+  q = {vim.diagnostic.setloclist, "Add diagnostics to location list"},
 }
-for key, cmd in pairs(diagnostic_keymap) do
-  vim.keymap.set('n', key, cmd, { noremap=true, silent=true })
-end
+wk.register(diag_keymap, {prefix = "<leader>d"})
 
 local on_attach = function(_, bufnr)
   local vlb = vim.lsp.buf
@@ -18,23 +18,28 @@ local on_attach = function(_, bufnr)
     print(vim.inspect(vlb.list_workspace_folders()))
   end
   -- See `:help vim.lsp.*` for documentation on any of the below functions
-  local lsp_kmap = {
-    ['gD'] = vlb.declaration,
-    ['gd'] = vlb.definition,
-    ['gi'] = vlb.implementation,
-    ['gt'] = vlb.type_definition,
-    ['gr'] = vlb.references,
-    ['K'] = vlb.hover,
-    ['<C-k>'] = vlb.signature_help,
-    ['<leader>wa'] = vlb.add_workspace_folder,
-    ['<leader>wr'] = vlb.remove_workspace_folder,
-    ['<leader>wl'] = print_worspace_folder,
-    ['<leader>rn'] = vlb.rename,
-    ['<leader>ca'] = vlb.code_action,
+  local go_keymap = {
+    name = "Go moves -- Requires LSP",
+    D = {vlb.declaration, "Go to declaration"},
+    d = {vlb.definition, "Go to definition"},
+    i = {vlb.implementation, "Go to implementation"},
+    t = {vlb.type_definition, "Go to type definition"},
+    r = {vlb.references, "Show all references in quickfix window"},
   }
-  for key, cmd in pairs(lsp_kmap) do
-    vim.keymap.set('n', key, cmd, {noremap=true, silent=true, buffer=bufnr})
-  end
+  wk.register(go_keymap, {prefix = "g"})
+  wk.register({
+    K = {vlb.hover, "Show over information"},
+    ["<C-k>"] = {vlb.signature_help, "Show signature help"},
+  })
+  local lsp_keymap = {
+    name = "LSP actions",
+    wa = {vlb.add_workspace_folder, "Add folder to workspace"},
+    wr = {vlb.remove_workspace_folder, "Remove folder from workspace"},
+    wp = {print_worspace_folder, "Print folders in workspace"},
+    r = {vlb.rename, "Rename variable"},
+    a = {vlb.code_action, "Select code action"},
+  }
+  wk.register(lsp_keymap, {prefix = "<leader>l"})
 
   vim.api.nvim_buf_create_user_command(bufnr, 'Format', function(_)
     vim.lsp.buf.format()
@@ -73,8 +78,10 @@ mason_lspconfig.setup_handlers {
 }
 
 servers["texlab"] = nil
+local dap_servers = {"python", "rust"}  -- DAP for rust also supports C and C++
 require('mason-nvim-dap').setup({
-  ensure_installed = vim.tbl_keys(servers)
+  ensure_installed = dap_servers,
+  automatic_installation = false,
 })
 
 -- luasnip setup
@@ -92,19 +99,19 @@ cmp.setup {
     ['<C-d>'] = cmp.mapping.scroll_docs(4),
     ['<C-f>'] = cmp.mapping.scroll_docs(-4),
     ['<C-Space>'] = cmp.mapping.complete(),
-    ['<CR>'] = cmp.mapping.confirm {
+    ['<C-y>'] = cmp.mapping.confirm {
       behavior = cmp.ConfirmBehavior.Replace,
       select = true,
     },
     ['<C-c>'] = cmp.mapping.abort(),
-    ['<Tab>'] = cmp.mapping(function(fallback)
+    ['<C-n>'] = cmp.mapping(function(fallback)
       if cmp.visible() then
         cmp.select_next_item()
       else
         fallback()
       end
     end, { 'i', 's' }),
-    ['<S-Tab>'] = cmp.mapping(function(fallback)
+    ['<C-p>'] = cmp.mapping(function(fallback)
       if cmp.visible() then
         cmp.select_prev_item()
       else

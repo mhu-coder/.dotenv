@@ -17,39 +17,40 @@ local set_logpoint = function()
   dap.set_breakpoint(nil, nil, vim.fn.input('Log point message: '))
 end
 
-local keymaps = {
-  ['<F1>']=dap.step_into,
-  ['<F2>']=dap.step_over,
-  ['<F3>']=dap.step_out,
-  ['<F4>']=dap.continue,
-  ['<F9>']=dap.terminate,
-  ['<leader>db']=dap.toggle_breakpoint,
-  ['<leader>dB']=set_condition_bp,
-  ['<leader>dl']=set_logpoint,
-  ['<leader>dr']=dap.repl.open,
+local km = {
+  name = "Debugger",
+  [1] = {dap.step_into, "Step into instruction"},
+  [2] = {dap.step_over, "Step over instruction"},
+  [3] = {dap.step_out, "Step out of current scope"},
+  [4] = {dap.continue, "Resume program"},
+  [9] = {dap.terminate, "Terminate debugging session"},
+  b = {dap.toggle_breakpoint, "Toggle breakpoint"},
+  B = {set_condition_bp, "Set conditional breakpoint"},
+  l = {set_logpoint, "Set log point"},
+  r = {dap.repl.open, "Open REPL"},
 }
-local opts = { noremap=true, silent=true }
-for keymap, fun in pairs(keymaps) do
-  vim.keymap.set('n', keymap, fun, opts)
-end
+local wk = require("which-key")
+wk.register(km, {prefix="<leader>b"})
 
 ------------
 -- Python --
 ------------
 local venv = os.getenv("VIRTUAL_ENV")
 if venv ~= nil then
-  local pybin = venv .. "/bin/python"
+  local ok, dap_py = pcall(require, "dap-python")
+  if not ok then
+    vim.notify("dap-python not available. No debugger will be available.")
+  else
+    local pybin = venv .. "/bin/python"
 
-  local dap_py = require("dap-python")
-  dap_py.test_runner = 'pytest'
-  dap_py.setup(pybin)
+    dap_py.test_runner = 'pytest'
+    dap_py.setup(pybin)
 
-  local py_keymaps = {
-    ['<leader>df']=dap_py.test_method,
-    ['<leader>dc']=dap_py.test_class,
-  }
-  for keymap, fun in pairs(py_keymaps) do
-    vim.keymap.set('n', keymap, fun, opts)
+    local py_km = {
+      f = {dap_py.test_method, "Test method"},
+      c = {dap_py.test_class, "Test class"},
+    }
+    wk.register(py_km, {prefix="<leader>b"})
   end
 end
 
