@@ -11,7 +11,7 @@ if not vim.loop.fs_stat(lazypath) then
 end
 vim.opt.rtp:prepend(lazypath)
 
-local function git_plugs ()
+local function git_plugs()
   return {
     'tpope/vim-fugitive',
     {
@@ -31,8 +31,8 @@ local function git_plugs ()
       main = "ibl",
       -- Enable `lukas-reineke/indent-blankline.nvim`
       opts = {
-        indent = {char = '┊'},
-        whitespace = {remove_blankline_trail = false},
+        indent = { char = '┊' },
+        whitespace = { remove_blankline_trail = false },
       },
     },
   }
@@ -43,7 +43,7 @@ local function ui_plugs()
     'rakr/vim-one',
     {
       'nvim-lualine/lualine.nvim',
-      dependencies = {'kyazdani42/nvim-web-devicons'}
+      dependencies = { 'kyazdani42/nvim-web-devicons' }
     },
     -- Detect tabstop and shiftwidth automatically
     'tpope/vim-sleuth',
@@ -87,7 +87,7 @@ local function code_plugs()
     { -- Autocompletion
       'hrsh7th/nvim-cmp',
       -- 'saadparwaiz1/cmp_luasnip'  for completion source if wanted
-      dependencies = {'hrsh7th/cmp-nvim-lsp', 'L3MON4D3/LuaSnip'},
+      dependencies = { 'hrsh7th/cmp-nvim-lsp', 'L3MON4D3/LuaSnip' },
     },
     -- "gc" to comment visual regions/lines
     { 'numToStr/Comment.nvim', opts = {} },
@@ -99,6 +99,10 @@ local function code_plugs()
       config = function()
         pcall(require('nvim-treesitter.install').update { with_sync = true })
       end,
+    },
+    { -- Autoformat
+      'stevearc/conform.nvim',
+      opts = {},
     },
   }
 end
