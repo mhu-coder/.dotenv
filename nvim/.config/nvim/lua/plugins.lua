@@ -40,7 +40,12 @@ end
 
 local function ui_plugs()
   return {
-    'rakr/vim-one',
+    {
+      "folke/tokyonight.nvim",
+      lazy = false,
+      priority = 1000,
+      opts = {},
+    },
     {
       'nvim-lualine/lualine.nvim',
       dependencies = { 'kyazdani42/nvim-web-devicons' }

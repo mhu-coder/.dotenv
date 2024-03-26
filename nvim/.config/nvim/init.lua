@@ -1,16 +1,16 @@
 -- nvim init.lua
 
 -- Clear useless default keymaps
-local useless_keys = {"<C-c>"}
+local useless_keys = { "<C-c>" }
 for _, val in pairs(useless_keys) do
-  vim.api.nvim_set_keymap("i", val, "<Nop>", {noremap = true})
+  vim.api.nvim_set_keymap("i", val, "<Nop>", { noremap = true })
 end
 
 -- Package manager and packages
 require('plugins')
 require('lsp_config')
 
-vim.cmd("colorscheme one")
+vim.cmd("colorscheme tokyonight-storm")
 
 -- Other vim config stuff
 vim.cmd([[
