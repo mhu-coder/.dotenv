@@ -5,12 +5,12 @@ capabilities = require('cmp_nvim_lsp').default_capabilities(capabilities)
 local wk = require("which-key")
 local diag_keymap = {
   name = "diagnostic",
-  e = {vim.diagnostic.open_float, "Jump into diagnostic window"},
-  k = {vim.diagnostic.goto_prev, "Go to previous diagnostic"},
-  j = {vim.diagnostic.goto_next, "Go to next diagnostic"},
-  q = {vim.diagnostic.setloclist, "Add diagnostics to location list"},
+  e = { vim.diagnostic.open_float, "Jump into diagnostic window" },
+  k = { vim.diagnostic.goto_prev, "Go to previous diagnostic" },
+  j = { vim.diagnostic.goto_next, "Go to next diagnostic" },
+  q = { vim.diagnostic.setloclist, "Add diagnostics to location list" },
 }
-wk.register(diag_keymap, {prefix = "<leader>d"})
+wk.register(diag_keymap, { prefix = "<leader>d" })
 
 local on_attach = function(_, bufnr)
   local vlb = vim.lsp.buf
@@ -20,26 +20,26 @@ local on_attach = function(_, bufnr)
   -- See `:help vim.lsp.*` for documentation on any of the below functions
   local go_keymap = {
     name = "Go moves -- Requires LSP",
-    D = {vlb.declaration, "Go to declaration"},
-    d = {vlb.definition, "Go to definition"},
-    i = {vlb.implementation, "Go to implementation"},
-    t = {vlb.type_definition, "Go to type definition"},
-    r = {vlb.references, "Show all references in quickfix window"},
+    D = { vlb.declaration, "Go to declaration" },
+    d = { vlb.definition, "Go to definition" },
+    i = { vlb.implementation, "Go to implementation" },
+    t = { vlb.type_definition, "Go to type definition" },
+    r = { vlb.references, "Show all references in quickfix window" },
   }
-  wk.register(go_keymap, {prefix = "g"})
+  wk.register(go_keymap, { prefix = "g" })
   wk.register({
-    K = {vlb.hover, "Show over information"},
-    ["<C-k>"] = {vlb.signature_help, "Show signature help"},
+    K = { vlb.hover, "Show over information" },
+    ["<C-k>"] = { vlb.signature_help, "Show signature help" },
   })
   local lsp_keymap = {
     name = "LSP actions",
-    wa = {vlb.add_workspace_folder, "Add folder to workspace"},
-    wr = {vlb.remove_workspace_folder, "Remove folder from workspace"},
-    wp = {print_worspace_folder, "Print folders in workspace"},
-    r = {vlb.rename, "Rename variable"},
-    a = {vlb.code_action, "Select code action"},
+    wa = { vlb.add_workspace_folder, "Add folder to workspace" },
+    wr = { vlb.remove_workspace_folder, "Remove folder from workspace" },
+    wp = { print_worspace_folder, "Print folders in workspace" },
+    r = { vlb.rename, "Rename variable" },
+    a = { vlb.code_action, "Select code action" },
   }
-  wk.register(lsp_keymap, {prefix = "<leader>l"})
+  wk.register(lsp_keymap, { prefix = "<leader>l" })
 
   vim.api.nvim_buf_create_user_command(bufnr, 'Format', function(_)
     vim.lsp.buf.format()
@@ -53,8 +53,8 @@ local servers = {
   texlab = {},
   lua_ls = {
     Lua = {
-      workspace = {checkThirdParty = false},
-      telemetry = {enable = true},
+      workspace = { checkThirdParty = false },
+      telemetry = { enable = true },
     },
   },
 }
@@ -78,7 +78,7 @@ mason_lspconfig.setup_handlers {
 }
 
 servers["texlab"] = nil
-local dap_servers = {"python", "rust"}  -- DAP for rust also supports C and C++
+local dap_servers = { "python", "rust" } -- DAP for rust also supports C and C++
 require('mason-nvim-dap').setup({
   ensure_installed = dap_servers,
   automatic_installation = false,
@@ -125,4 +125,3 @@ cmp.setup {
     { name = 'luasnip' },
   },
 }
-
