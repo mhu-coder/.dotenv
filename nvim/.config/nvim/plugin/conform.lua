@@ -6,7 +6,12 @@ end
 
 local formatters_by_ft = {
   lua = { 'stylua' },
-  python = { 'isort', 'black' },
+  python = function(bufnr)
+    if conform.get_formatter_info("ruff_format", bufnr).available then
+      return { "ruff_format" }
+    end
+    return { "isort", "black" }
+  end,
 }
 conform.setup({
   notify_on_error = false,
