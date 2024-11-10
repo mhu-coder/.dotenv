@@ -60,7 +60,7 @@ local servers = {
   },
 }
 
-require('neodev').setup()
+require('lazydev').setup()
 
 -- mason setup
 require('mason').setup()
