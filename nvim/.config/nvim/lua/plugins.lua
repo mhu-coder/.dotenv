@@ -117,6 +117,17 @@ local function code_plugs()
       'stevearc/conform.nvim',
       opts = {},
     },
+    { -- Git in vim
+      "NeogitOrg/neogit",
+      dependencies = {
+        "nvim-lua/plenary.nvim",  -- required
+        "sindrets/diffview.nvim", -- optional - Diff integration
+
+        -- Only one of these is needed, not both.
+        "nvim-telescope/telescope.nvim", -- optional
+      },
+      config = true
+    }
   }
 end
 
