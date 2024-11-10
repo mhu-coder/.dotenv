@@ -90,9 +90,17 @@ local function code_plugs()
       'mfussenegger/nvim-dap-python'
     },
     { -- Autocompletion
-      'hrsh7th/nvim-cmp',
-      -- 'saadparwaiz1/cmp_luasnip'  for completion source if wanted
-      dependencies = { 'hrsh7th/cmp-nvim-lsp', 'L3MON4D3/LuaSnip' },
+      'hrsh7th/nvim-cmp', dependencies = { 'hrsh7th/cmp-nvim-lsp' },
+    },
+    {
+      "L3MON4D3/LuaSnip",
+      version = "v2.*", -- Replace <CurrentMajor> by the latest released major (first number of latest release)
+      build = "make install_jsregexp",
+      dependencies = {
+        'L3MON4D3/LuaSnip',
+        'saadparwaiz1/cmp_luasnip',
+        'rafamadriz/friendly-snippets',
+      },
     },
     -- "gc" to comment visual regions/lines
     { 'numToStr/Comment.nvim', opts = {} },

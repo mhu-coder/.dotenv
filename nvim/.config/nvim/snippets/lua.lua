@@ -16,6 +16,6 @@ return {
   parse("lf", "local function $1($2)\n    $0\nend"),
   s("req", fmt(
     "local {} = require \"{}\"",
-    {fnode(auto_req_name, { 1 }), inode(1)}
+    { fnode(auto_req_name, { 1 }), inode(1) }
   )),
 }
