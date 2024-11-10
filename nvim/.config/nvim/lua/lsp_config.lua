@@ -1,16 +1,17 @@
--- Add additional capabilities supported by nvim-cmp
-local capabilities = vim.lsp.protocol.make_client_capabilities()
-capabilities = require('cmp_nvim_lsp').default_capabilities(capabilities)
+local ok, wk = pcall(require, "which-key")
+if not ok then
+  return
+end
+local wk_utils = require("wk")
 
-local wk = require("which-key")
 local diag_keymap = {
-  name = "diagnostic",
-  e = { vim.diagnostic.open_float, "Jump into diagnostic window" },
-  k = { vim.diagnostic.goto_prev, "Go to previous diagnostic" },
-  j = { vim.diagnostic.goto_next, "Go to next diagnostic" },
-  q = { vim.diagnostic.setloclist, "Add diagnostics to location list" },
+  { "e", vim.diagnostic.open_float, desc = "Jump into diagnostic window" },
+  { "k", vim.diagnostic.goto_prev,  desc = "Go to previous diagnostic" },
+  { "j", vim.diagnostic.goto_next,  desc = "Go to next diagnostic" },
+  { "q", vim.diagnostic.setloclist, desc = "Add diagnostics to location list" },
 }
-wk.register(diag_keymap, { prefix = "<leader>d" })
+wk_utils.add_prefix(diag_keymap, "<leader>d", "diagnostics")
+wk.add(diag_keymap)
 
 local on_attach = function(_, bufnr)
   local vlb = vim.lsp.buf
@@ -19,27 +20,27 @@ local on_attach = function(_, bufnr)
   end
   -- See `:help vim.lsp.*` for documentation on any of the below functions
   local go_keymap = {
-    name = "Go moves -- Requires LSP",
-    D = { vlb.declaration, "Go to declaration" },
-    d = { vlb.definition, "Go to definition" },
-    i = { vlb.implementation, "Go to implementation" },
-    t = { vlb.type_definition, "Go to type definition" },
-    r = { vlb.references, "Show all references in quickfix window" },
+    { "D", vlb.declaration,     desc = "Go to declaration" },
+    { "d", vlb.definition,      desc = "Go to definition" },
+    { "i", vlb.implementation,  desc = "Go to implementation" },
+    { "t", vlb.type_definition, desc = "Go to type definition" },
+    { "r", vlb.references,      desc = "Show all references in quickfix window" },
   }
-  wk.register(go_keymap, { prefix = "g" })
-  wk.register({
-    K = { vlb.hover, "Show over information" },
-    ["<C-k>"] = { vlb.signature_help, "Show signature help" },
+  wk_utils.add_prefix(go_keymap, "g", "Go moves")
+  wk.add(go_keymap)
+  wk.add({
+    { "K",     vlb.hover,          desc = "Show over information" },
+    { "<C-k>", vlb.signature_help, desc = "Show signature help" },
   })
   local lsp_keymap = {
-    name = "LSP actions",
-    wa = { vlb.add_workspace_folder, "Add folder to workspace" },
-    wr = { vlb.remove_workspace_folder, "Remove folder from workspace" },
-    wp = { print_worspace_folder, "Print folders in workspace" },
-    r = { vlb.rename, "Rename variable" },
-    a = { vlb.code_action, "Select code action" },
+    { "wa", vlb.add_workspace_folder,    desc = "Add folder to workspace" },
+    { "wr", vlb.remove_workspace_folder, desc = "Remove folder from workspace" },
+    { "wp", print_worspace_folder,       desc = "Print folders in workspace" },
+    { "r",  vlb.rename,                  desc = "Rename variable" },
+    { "a",  vlb.code_action,             desc = "Select code action" },
   }
-  wk.register(lsp_keymap, { prefix = "<leader>l" })
+  wk_utils.add_prefix(lsp_keymap, "<leader>l", "LSP actions")
+  wk.add(lsp_keymap)
 
   vim.api.nvim_buf_create_user_command(bufnr, 'Format', function(_)
     vim.lsp.buf.format()
@@ -67,6 +68,11 @@ local mason_lspconfig = require('mason-lspconfig')
 mason_lspconfig.setup {
   ensure_installed = vim.tbl_keys(servers),
 }
+
+-- Add additional capabilities supported by nvim-cmp
+local capabilities = vim.lsp.protocol.make_client_capabilities()
+capabilities = require('cmp_nvim_lsp').default_capabilities(capabilities)
+
 mason_lspconfig.setup_handlers {
   function(server_name)
     require('lspconfig')[server_name].setup {
@@ -83,45 +89,3 @@ require('mason-nvim-dap').setup({
   ensure_installed = dap_servers,
   automatic_installation = false,
 })
-
--- luasnip setup
-local luasnip = require 'luasnip'
-
--- nvim-cmp setup
-local cmp = require 'cmp'
-cmp.setup {
-  snippet = {
-    expand = function(args)
-      luasnip.lsp_expand(args.body)
-    end,
-  },
-  mapping = cmp.mapping.preset.insert({
-    ['<C-d>'] = cmp.mapping.scroll_docs(4),
-    ['<C-f>'] = cmp.mapping.scroll_docs(-4),
-    ['<C-Space>'] = cmp.mapping.complete(),
-    ['<C-y>'] = cmp.mapping.confirm {
-      behavior = cmp.ConfirmBehavior.Replace,
-      select = true,
-    },
-    ['<C-c>'] = cmp.mapping.abort(),
-    ['<C-n>'] = cmp.mapping(function(fallback)
-      if cmp.visible() then
-        cmp.select_next_item()
-      else
-        fallback()
-      end
-    end, { 'i', 's' }),
-    ['<C-p>'] = cmp.mapping(function(fallback)
-      if cmp.visible() then
-        cmp.select_prev_item()
-      else
-        fallback()
-      end
-    end, { 'i', 's' }),
-  }),
-  sources = {
-    { name = 'path' },
-    { name = 'nvim_lsp' },
-    { name = 'luasnip' },
-  },
-}

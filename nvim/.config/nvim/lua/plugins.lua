@@ -114,7 +114,17 @@ end
 
 local function util_plugs()
   return {
-    { 'folke/which-key.nvim', opts = {} },
+    {
+      'folke/which-key.nvim',
+      opts = {},
+      keys = {
+        {
+          "<leader>?",
+          function() require("which-key").show({ global = true }) end,
+          desc = "Buffer local keymaps",
+        },
+      }
+    },
     -- Fuzzy Finder (files, lsp, etc)
     {
       'nvim-telescope/telescope.nvim',

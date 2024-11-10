@@ -1,12 +1,14 @@
 -------------
 -- General --
 -------------
-if not pcall(require, "dap") then
+local ok_dap, dap = pcall(require, "dap")
+if not ok_dap then
   print("nvim-dap is not installed! Aborting...")
   return
 end
 
-local dap = require('dap')
+local wk_utils = require("wk")
+
 dap.set_log_level('INFO')
 
 local set_condition_bp = function()
@@ -18,19 +20,18 @@ local set_logpoint = function()
 end
 
 local km = {
-  name = "Debugger",
-  [1] = {dap.step_into, "Step into instruction"},
-  [2] = {dap.step_over, "Step over instruction"},
-  [3] = {dap.step_out, "Step out of current scope"},
-  [4] = {dap.continue, "Resume program"},
-  [9] = {dap.terminate, "Terminate debugging session"},
-  b = {dap.toggle_breakpoint, "Toggle breakpoint"},
-  B = {set_condition_bp, "Set conditional breakpoint"},
-  l = {set_logpoint, "Set log point"},
-  r = {dap.repl.open, "Open REPL"},
+  { "1", dap.step_into,         desc = "Step into instruction" },
+  { "2", dap.step_over,         desc = "Step over instruction" },
+  { "3", dap.step_out,          desc = "Step out of current scope" },
+  { "4", dap.continue,          desc = "Resume program" },
+  { "9", dap.terminate,         desc = "Terminate debugging session" },
+  { "b", dap.toggle_breakpoint, desc = "Toggle breakpoint" },
+  { "B", set_condition_bp,      desc = "Set conditional breakpoint" },
+  { "l", set_logpoint,          desc = "Set log point" },
+  { "r", dap.repl.open,         desc = "Open REPL" },
 }
 local wk = require("which-key")
-wk.register(km, {prefix="<leader>b"})
+wk.add(wk_utils.add_prefix(km, "<leader>b", "DAP"))
 
 ------------
 -- Python --
@@ -47,10 +48,10 @@ if venv ~= nil then
     dap_py.setup(pybin)
 
     local py_km = {
-      f = {dap_py.test_method, "Test method"},
-      c = {dap_py.test_class, "Test class"},
+      { "f", dap_py.test_method, desc = "Test method" },
+      { "c", dap_py.test_class,  desc = "Test class" },
     }
-    wk.register(py_km, {prefix="<leader>b"})
+    wk.add(wk_utils.add_prefix(py_km, "<leader>b"))
   end
 end
 
@@ -63,7 +64,7 @@ dap.adapters.codelldb = {
   port = '${port}',
   executable = {
     command = '/usr/local/bin/codelldb',
-    args = {"--port", "${port}"},
+    args = { "--port", "${port}" },
   }
 }
 dap.configurations.rust = {
