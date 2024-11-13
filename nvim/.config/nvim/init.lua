@@ -24,6 +24,7 @@ vim.cmd([[
   set background=dark
   highlight ColorColumn guibg='Red'
   highlight WinSeparator guibg=None
+  set laststatus=3
 ]])
 
 
