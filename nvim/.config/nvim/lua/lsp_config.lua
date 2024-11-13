@@ -47,15 +47,27 @@ local on_attach = function(_, bufnr)
   end, { desc = 'Format current buffer with LSP' })
 end
 
+local ruff_on_attach = function(client, _)
+  client.server_capabilities.hoverProvider = false
+end
+
 local servers = {
   clangd = {},
   rust_analyzer = {},
-  pyright = {},
+  pyright = {
+    settings = {
+      pyright = { disableOrgnizeImports = true },
+      python = { analysis = { ignore = { "*" } } },
+    },
+  },
+  ruff = { on_attach = ruff_on_attach },
   texlab = {},
   lua_ls = {
-    Lua = {
-      workspace = { checkThirdParty = false },
-      telemetry = { enable = true },
+    settings = {
+      Lua = {
+        workspace = { checkThirdParty = false },
+        telemetry = { enable = true },
+      },
     },
   },
 }
@@ -77,8 +89,8 @@ mason_lspconfig.setup_handlers {
   function(server_name)
     require('lspconfig')[server_name].setup {
       capabilities = capabilities,
-      on_attach = on_attach,
-      settings = servers[server_name],
+      on_attach = servers[server_name].on_attach or on_attach,
+      settings = servers[server_name].settings or {},
     }
   end,
 }
