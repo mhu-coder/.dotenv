@@ -30,3 +30,4 @@ local km = {
     { "h", builtin.help_tags,  desc = "List all help tags" },
 }
 wk.add(wk_utils.add_prefix(km, "<leader>f", "File"))
+wk.add({ "<leader>dd", "<cmd>Telescope diagnostics<CR>", desc = "Show diagnostics" })
