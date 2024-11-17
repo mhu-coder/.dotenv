@@ -102,6 +102,10 @@ local function code_plugs()
         'rafamadriz/friendly-snippets',
       },
     },
+    {
+      "danymat/neogen",
+      config = true,
+    },
     -- "gc" to comment visual regions/lines
     { 'numToStr/Comment.nvim', opts = {} },
     { -- Highlight, edit, and navigate code
