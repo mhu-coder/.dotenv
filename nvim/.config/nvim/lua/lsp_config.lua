@@ -57,7 +57,13 @@ local servers = {
   pyright = {
     settings = {
       pyright = { disableOrgnizeImports = true },
-      python = { analysis = { ignore = { "*" } } },
+      python = {
+        analysis = {
+          useLibraryCodeForTypes = true,
+          diagnosticSeverityOverrides = { reportUnusedVariable = "warning" },
+          typeCheckingMode = "standard",
+        }
+      },
     },
   },
   ruff = { on_attach = ruff_on_attach },
@@ -88,7 +94,7 @@ capabilities = require('cmp_nvim_lsp').default_capabilities(capabilities)
 mason_lspconfig.setup_handlers {
   function(server_name)
     require('lspconfig')[server_name].setup {
-      capabilities = capabilities,
+      capabilities = servers[server_name].capabilities or capabilities,
       on_attach = servers[server_name].on_attach or on_attach,
       settings = servers[server_name].settings or {},
     }
