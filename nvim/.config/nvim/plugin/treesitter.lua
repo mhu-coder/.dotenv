@@ -1,9 +1,10 @@
-local langs = {'c', 'cpp', 'lua', 'python', 'rust', 'latex', 'vim', 'help'}
+local langs = { 'c', 'cpp', 'lua', 'python', 'rust', 'latex', 'vim', 'vimdoc' }
 require('nvim-treesitter.configs').setup {
+  modules = {},
   ensure_installed = langs,
   auto_install = true,
-  highlight = {enable = true},
-  indent = { enable = true, disable = {'python'} },
+  highlight = { enable = true },
+  indent = { enable = true, disable = { 'python' } },
   incremental_selection = {
     enable = true,
     keymaps = {
