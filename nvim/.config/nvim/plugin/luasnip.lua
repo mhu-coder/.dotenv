@@ -41,6 +41,11 @@ local km = {
     function() if luasnip.choice_active() then luasnip.change_choice(-1) end end,
     desc = "Go to previous choice",
   },
+  {
+    "<c-y>",
+    function() if luasnip.expandable() then luasnip.expand() end end,
+    desc = "Expand snippet",
+  }
 }
 wk.add({ mode = { "i", "s" }, km })
 
