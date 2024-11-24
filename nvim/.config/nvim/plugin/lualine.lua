@@ -67,7 +67,7 @@ require('lualine').setup {
     globalstatus = true,
     section_separators = '',
     component_separators = '',
-    theme = 'tokyonight',
+    theme = 'catppuccin',
   },
   sections = {
     lualine_a = { mode_section },

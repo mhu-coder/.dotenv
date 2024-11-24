@@ -10,7 +10,7 @@ end
 require('plugins')
 require('lsp_config')
 
-vim.cmd("colorscheme tokyonight-storm")
+vim.cmd("colorscheme catppuccin")
 
 -- Other vim config stuff
 vim.cmd([[
