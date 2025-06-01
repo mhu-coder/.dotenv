@@ -1,6 +1,7 @@
 local luasnip = require "luasnip"
 
 local s = luasnip.s
+local parse = require("luasnip.util.parser").parse_snippet
 
 local fmt = require("luasnip.extras.fmt").fmt
 local inode = luasnip.insert_node
@@ -8,7 +9,7 @@ local fnode = luasnip.function_node
 local rep = require("luasnip.extras").rep
 
 local function auto_req_name(import_name)
-  local parts = vim.split(import_name[1][1], ".", true)
+  local parts = vim.split(import_name[1][1], ".", { plain = true })
   return parts[#parts] or ""
 end
 

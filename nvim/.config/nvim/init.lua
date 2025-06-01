@@ -14,6 +14,9 @@ vim.cmd("colorscheme catppuccin")
 
 -- Other vim config stuff
 vim.cmd([[
+  filetype off
+  set runtimepath+=/usr/local/lilypond-2.24.2/share/lilypond/2.24.2/vim
+  filetype on
   set hidden
   set encoding=utf-8
   syntax on

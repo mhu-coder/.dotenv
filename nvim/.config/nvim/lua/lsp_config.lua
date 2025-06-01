@@ -4,16 +4,24 @@ if not ok then
 end
 local wk_utils = require("wk")
 
+local goto_prev = function()
+  vim.diagnostic.jump({ count = -1, float = true })
+end
+
+local goto_next = function()
+  vim.diagnostic.jump({ count = 1, float = true })
+end
+
 local diag_keymap = {
   { "e", vim.diagnostic.open_float, desc = "Jump into diagnostic window" },
-  { "k", vim.diagnostic.goto_prev,  desc = "Go to previous diagnostic" },
-  { "j", vim.diagnostic.goto_next,  desc = "Go to next diagnostic" },
+  { "k", goto_prev,                 desc = "Go to previous diagnostic" },
+  { "j", goto_next,                 desc = "Go to next diagnostic" },
   { "q", vim.diagnostic.setloclist, desc = "Add diagnostics to location list" },
 }
 wk_utils.add_prefix(diag_keymap, "<leader>d", "diagnostics")
 wk.add(diag_keymap)
 
-local on_attach = function(_, bufnr)
+local on_attach = function(bufnr)
   local vlb = vim.lsp.buf
   local function print_worspace_folder()
     print(vim.inspect(vlb.list_workspace_folders()))
@@ -91,15 +99,12 @@ mason_lspconfig.setup {
 local capabilities = vim.lsp.protocol.make_client_capabilities()
 capabilities = require('cmp_nvim_lsp').default_capabilities(capabilities)
 
-mason_lspconfig.setup_handlers {
-  function(server_name)
-    require('lspconfig')[server_name].setup {
-      capabilities = servers[server_name].capabilities or capabilities,
-      on_attach = servers[server_name].on_attach or on_attach,
-      settings = servers[server_name].settings or {},
-    }
+vim.api.nvim_create_autocmd('LspAttach', {
+  group = vim.api.nvim_create_augroup('my.lsp', {}),
+  callback = function(args)
+    on_attach(args.buf)
   end,
-}
+})
 
 servers["texlab"] = nil
 local dap_servers = { "python", "rust" } -- DAP for rust also supports C and C++

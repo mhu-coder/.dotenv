@@ -30,7 +30,7 @@ local function doc_common(indent_level)
 end
 
 
-local function py_func_doc(args, parent, ostate, indent_level)
+local function py_func_doc(args, _, ostate, indent_level)
   indent_level = indent_level or 1
   local nodes, n_fields = doc_common(indent_level)
 
@@ -42,7 +42,7 @@ local function py_func_doc(args, parent, ostate, indent_level)
     arr = vim.tbl_map(function(item)
       local trimed = vim.trim(item)
       return vim.split(trimed, ":")[1]
-    end, vim.split(args[1][1], ',', true))
+    end, vim.split(args[1][1], ',', { plain = true }))
   end
 
   local next_indent = string.rep(indent_str, indent_level + 1)

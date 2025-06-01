@@ -54,15 +54,13 @@ local function code_plugs()
   return {
     {
       'neovim/nvim-lspconfig',
+      dependencies = { 'folke/lazydev.nvim' },
+    },
+    {
+      "mason-org/mason-lspconfig.nvim",
       dependencies = {
-        -- Auto install LSPs to stdpath for nvim
-        'williamboman/mason.nvim',
-        'williamboman/mason-lspconfig.nvim',
-        -- Useful status updates for LSP
-        -- NOTE: `opts = {}` is the same as calling `require('fidget').setup({})`
-        { 'j-hui/fidget.nvim', tag = "legacy", event = "LspAttach", opts = {} },
-        -- Additional lua configuration, makes nvim stuff amazing!
-        'folke/lazydev.nvim',
+        { "mason-org/mason.nvim", opts = {} },
+        "neovim/nvim-lspconfig",
       },
     },
     { -- DAP
