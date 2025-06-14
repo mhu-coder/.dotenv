@@ -4,8 +4,17 @@ if not ok_line then
   return
 end
 
-local function mode_section()
+local function get_git_branch()
   local branch = vim.fn.system("git branch --show-current 2> /dev/null | tr -d '\r\n'")
+  vim.b.git_branch_name = branch
+end
+
+vim.api.nvim_create_autocmd('BufEnter', {
+  callback = get_git_branch
+})
+
+local function mode_section()
+  local branch = vim.b.git_branch_name
   if branch ~= '' then
     return ' ' .. branch
   end
