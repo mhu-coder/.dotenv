@@ -1,6 +1,6 @@
 # Setup info
 
-This configuration requires neovim >= 0.7.
+This configuration requires neovim >= 0.12.
 
 ## External dependencies
 
@@ -10,8 +10,8 @@ This configuration requires neovim >= 0.7.
 | Python  |                                             cmake LSP |
 | ripgrep |                                                       |
 | cmake   |                                          to build fzf |
+| cargo   |                       to build fuzzy search for blink |
 | devicon |                   icons for telescope and status line |
-| debugpy |                                        For python dap |
 
 ## Language servers
 
