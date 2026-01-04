@@ -1,3 +1,12 @@
+local lsps = {
+  'bashls', 'lua_ls', 'pyright'
+}
+vim.lsp.enable(lsps)
+vim.diagnostic.config({ virtual_text = true })
+
+-------------
+-- Keymaps --
+-------------
 local ok, wk = pcall(require, "which-key")
 if not ok then
   return
@@ -55,60 +64,9 @@ local on_attach = function(bufnr)
   end, { desc = 'Format current buffer with LSP' })
 end
 
-local ruff_on_attach = function(client, _)
-  client.server_capabilities.hoverProvider = false
-end
-
-local servers = {
-  clangd = {},
-  rust_analyzer = {},
-  pyright = {
-    settings = {
-      pyright = { disableOrgnizeImports = true },
-      python = {
-        analysis = {
-          useLibraryCodeForTypes = true,
-          diagnosticSeverityOverrides = { reportUnusedVariable = "warning" },
-          typeCheckingMode = "standard",
-        }
-      },
-    },
-  },
-  ruff = { on_attach = ruff_on_attach },
-  texlab = {},
-  lua_ls = {
-    settings = {
-      Lua = {
-        workspace = { checkThirdParty = false },
-        telemetry = { enable = true },
-      },
-    },
-  },
-}
-
-require('lazydev').setup()
-
--- mason setup
-require('mason').setup()
-local mason_lspconfig = require('mason-lspconfig')
-mason_lspconfig.setup {
-  ensure_installed = vim.tbl_keys(servers),
-}
-
--- Add additional capabilities supported by nvim-cmp
-local capabilities = vim.lsp.protocol.make_client_capabilities()
-capabilities = require('cmp_nvim_lsp').default_capabilities(capabilities)
-
 vim.api.nvim_create_autocmd('LspAttach', {
   group = vim.api.nvim_create_augroup('my.lsp', {}),
   callback = function(args)
     on_attach(args.buf)
   end,
-})
-
-servers["texlab"] = nil
-local dap_servers = { "python", "rust" } -- DAP for rust also supports C and C++
-require('mason-nvim-dap').setup({
-  ensure_installed = dap_servers,
-  automatic_installation = false,
 })

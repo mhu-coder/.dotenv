@@ -1,170 +1,72 @@
-local lazypath = vim.fn.stdpath 'data' .. '/lazy/lazy.nvim'
-if not vim.loop.fs_stat(lazypath) then
-  vim.fn.system {
-    'git',
-    'clone',
-    '--filter=blob:none',
-    'https://github.com/folke/lazy.nvim.git',
-    '--branch=stable',
-    lazypath,
-  }
-end
-vim.opt.rtp:prepend(lazypath)
-
-local function git_plugs()
-  return {
-    'tpope/vim-fugitive',
-    {
-      'lewis6991/gitsigns.nvim',
-      opts = {
-        signs = {
-          add = { text = '+' },
-          change = { text = '~' },
-          delete = { text = '_' },
-          topdelete = { text = '‾' },
-          changedelete = { text = '~' },
-        },
-      },
-    },
-    { -- Add indentation guides even on blank lines
-      'lukas-reineke/indent-blankline.nvim',
-      main = "ibl",
-      -- Enable `lukas-reineke/indent-blankline.nvim`
-      opts = {
-        indent = { char = '┊' },
-        whitespace = { remove_blankline_trail = false },
-      },
-    },
-  }
+local function on_exit(plug_name)
+  local res = function(obj)
+    if obj.code ~= 0 then
+      local msg = ('Failed to compile %s'):format(plug_name)
+      local err_lv = vim.log.levels.ERROR
+      vim.notify(msg, err_lv)
+      vim.notify(obj.stdout, err_lv)
+      vim.notify(obj.stderr, err_lv)
+    end
+  end
+  return res
 end
 
-local function ui_plugs()
-  return {
-    { "catppuccin/nvim", name = "catppuccin", priority = 1000 },
-    {
-      'nvim-lualine/lualine.nvim',
-      dependencies = { 'kyazdani42/nvim-web-devicons' }
-    },
-    -- Detect tabstop and shiftwidth automatically
-    'tpope/vim-sleuth',
-  }
+local function install_telescope_fzf(event)
+  local cmd = 'cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release && cmake --build build --config Release'
+  -- wait to prevent install of telescope without fzf
+  local _ = vim.system(
+    { 'bash', '-c', cmd },
+    { cwd = event.data.path },
+    on_exit(event.data.spec.name)
+  ):wait()
 end
 
-local function code_plugs()
-  return {
-    {
-      'neovim/nvim-lspconfig',
-      dependencies = { 'folke/lazydev.nvim' },
-    },
-    {
-      "mason-org/mason-lspconfig.nvim",
-      dependencies = {
-        { "mason-org/mason.nvim", opts = {} },
-        "neovim/nvim-lspconfig",
-      },
-    },
-    { -- DAP
-      'mfussenegger/nvim-dap',
-      dependencies = {
-        'williamboman/mason.nvim',
-        'jay-babu/mason-nvim-dap.nvim',
-      },
-    },
-    {
-      'simrat39/rust-tools.nvim',
-    },
-    {
-      'rcarriga/nvim-dap-ui',
-      dependencies = {
-        "mfussenegger/nvim-dap", "nvim-neotest/nvim-nio"
-      },
-    },
-    {
-      'mfussenegger/nvim-dap-python'
-    },
-    { -- Autocompletion
-      'hrsh7th/nvim-cmp', dependencies = { 'hrsh7th/cmp-nvim-lsp' },
-    },
-    {
-      "L3MON4D3/LuaSnip",
-      version = "v2.*", -- Replace <CurrentMajor> by the latest released major (first number of latest release)
-      build = "make install_jsregexp",
-      dependencies = {
-        'L3MON4D3/LuaSnip',
-        'saadparwaiz1/cmp_luasnip',
-        'rafamadriz/friendly-snippets',
-      },
-    },
-    {
-      "danymat/neogen",
-      config = true,
-    },
-    -- "gc" to comment visual regions/lines
-    { 'numToStr/Comment.nvim', opts = {} },
-    { -- Highlight, edit, and navigate code
-      'nvim-treesitter/nvim-treesitter',
-      dependencies = {
-        'nvim-treesitter/nvim-treesitter-textobjects',
-      },
-      config = function()
-        pcall(require('nvim-treesitter.install').update { with_sync = true })
-      end,
-    },
-    { -- Autoformat
-      'stevearc/conform.nvim',
-      opts = {},
-    },
-    { -- Git in vim
-      "NeogitOrg/neogit",
-      dependencies = {
-        "nvim-lua/plenary.nvim",  -- required
-        "sindrets/diffview.nvim", -- optional - Diff integration
-
-        -- Only one of these is needed, not both.
-        "nvim-telescope/telescope.nvim", -- optional
-      },
-      config = true
-    }
-  }
+local function install_blink(event)
+  local cmd = { 'bash', '-c', 'cargo build --release' }
+  -- wait to prevent erroneous warning about missing binary for fuzzy search
+  local _ = vim.system(cmd, { cwd = event.data.path }, on_exit(event.data.spec.name)):wait()
 end
 
-local function util_plugs()
-  return {
-    {
-      'folke/which-key.nvim',
-      opts = {},
-      keys = {
-        {
-          "<leader>?",
-          function() require("which-key").show({ global = true }) end,
-          desc = "Buffer local keymaps",
-        },
-      }
-    },
-    -- Fuzzy Finder (files, lsp, etc)
-    {
-      'nvim-telescope/telescope.nvim',
-      version = '*',
-      dependencies = { 'nvim-lua/plenary.nvim' }
-    },
-    -- Fuzzy Finder Algorithm which requires local dependencies to be built.
-    -- Only load if `make` is available. Make sure you have the system
-    -- requirements installed.
-    {
-      'nvim-telescope/telescope-fzf-native.nvim',
-      build = 'make',
-      cond = function()
-        return vim.fn.executable 'make' == 1
-      end,
-    },
-    -- Useful plugin to show you pending keybinds.
-    { 'folke/which-key.nvim', opts = {} },
-  }
-end
+local custom_install = {
+  ['telescope-fzf-native.nvim'] = install_telescope_fzf,
+  ['blink.cmp'] = install_blink
+}
 
-require('lazy').setup({
-  git_plugs(),
-  ui_plugs(),
-  code_plugs(),
-  util_plugs(),
-}, {})
+vim.api.nvim_create_autocmd('PackChanged', {
+  callback = function(ev)
+    local extra_install = custom_install[ev.data.spec.name]
+    if extra_install then
+      vim.notify_once(
+        'Running extra install for ' .. ev.data.spec.name, vim.log.levels.INFO
+      )
+      extra_install(ev)
+    end
+  end,
+})
+
+vim.pack.add({
+  -- code plugins
+  'https://github.com/lewis6991/gitsigns.nvim',
+  'https://github.com/mason-org/mason.nvim',
+  'https://github.com/nvim-treesitter/nvim-treesitter',
+  -- 'https://github.com/nvim-treesitter/nvim-treesitter-textobjects',
+  { -- snippets
+    src = 'https://github.com/L3MON4D3/LuaSnip',
+    version = vim.version.range('v2.0 - v3.0'),
+  },
+  'https://github.com/saghen/blink.cmp', -- native completion only supports 1 source
+  'https://github.com/danymat/neogen',   -- code annotation
+  'https://github.com/tpope/vim-fugitive',
+  -- 'https://github.com/mfussenegger/nvim-dap',
+  -- 'https://github.com/rcarriga/nvim-dap-ui',
+  -- 'https://github.com/mfussenegger/nvim-dap-python',
+  -- file search
+  'https://github.com/nvim-lua/plenary.nvim', -- for telescope
+  'https://github.com/nvim-telescope/telescope-fzf-native.nvim',
+  'https://github.com/nvim-telescope/telescope.nvim',
+  -- keymaps
+  'https://github.com/folke/which-key.nvim',
+  -- UI
+  'https://github.com/catppuccin/nvim',
+  'https://github.com/nvim-lualine/lualine.nvim',
+})

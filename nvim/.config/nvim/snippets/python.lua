@@ -1,4 +1,5 @@
 local luasnip = require "luasnip"
+local luasp = luasnip.parser
 
 local snip = luasnip.snippet
 local snode = luasnip.snippet_node
@@ -12,99 +13,83 @@ local rep = require("luasnip.extras").rep
 
 local indent_str = string.rep(" ", 4)
 
--- doc stuff adapted from github.com/molleweide/LuaSnip-snippets.nvim
-local function doc_common(indent_level)
-  local indent = string.rep(indent_str, indent_level)
-  local nodes = {
-    tnode({ indent .. '"""' }),
-    inode(1, "One liner description."),
-    cnode(2, {
-      tnode({ "" }),
-      snode(nil, {
-        tnode({ "", "", "" }),
-        inode(1, { indent .. "Long description" }),
-      }),
-    }),
-  }
-  return nodes, 2
+------------------------
+-- CLI script snippet --
+------------------------
+local function has_uv()
+  local res = false
+  vim.system(
+    { "uv", "--help" },
+    function(obj)
+      res = (obj.code == 0)
+    end
+  ):wait()
+  return res
 end
 
-
-local function py_func_doc(args, _, ostate, indent_level)
-  indent_level = indent_level or 1
-  local nodes, n_fields = doc_common(indent_level)
-
-  -- fill Args section
-  local arr = {}
-  local indent = string.rep(indent_str, indent_level)
-  if args[1][1] ~= "" then
-    table.insert(nodes, tnode({ "", "", indent .. "Args:" }))
-    arr = vim.tbl_map(function(item)
-      local trimed = vim.trim(item)
-      return vim.split(trimed, ":")[1]
-    end, vim.split(args[1][1], ',', { plain = true }))
+local function get_cli_tool()
+  -- check if using system python to manage package
+  local cmd = { 'python', '-m', 'pip', 'list' }
+  local pip_res = vim.system(cmd):wait()
+  local base_cmd = { 'pip', 'show' }
+  if pip_res.code ~= 0 then
+    if has_uv() then
+      table.insert(base_cmd, 1, 'uv')
+    else
+      return 'argparse'
+    end
   end
 
-  local next_indent = string.rep(indent_str, indent_level + 1)
-  for idx, val in pairs(arr) do
-    table.insert(nodes, tnode({ "", next_indent .. val .. ": " }))
-    table.insert(nodes, inode(idx + 2, "Description for " .. val))
+  -- Prefer cyclopts > typer > argparse when available
+  for _, pkg in ipairs({ 'cyclopts', 'typer' }) do
+    cmd = vim.deepcopy(base_cmd)
+    table.insert(cmd, pkg)
+    local tmp = vim.system(cmd):wait()
+    if tmp.code == 0 then
+      return pkg
+    end
   end
-  n_fields = n_fields + #arr
-
-  if #args > 1 and args[2][1] ~= "None" then
-    table.insert(nodes, tnode({ "", "", indent .. "Returns:", next_indent }))
-    table.insert(nodes, inode(n_fields + 1, "Return description"))
-    n_fields = n_fields + 1
-  end
-  table.insert(nodes, tnode({ "", indent .. '"""', indent }))
-
-  local snippet = snode(nil, nodes)
-  snippet.old_state = ostate or {}
-
-  -- nodes, number of fields to fill
-  return snippet
+  return 'argparse'
 end
 
-local function py_class_doc(_, _, old_state)
-  -- indent_str = indent_str or "    "
-  local nodes, _ = doc_common(1)
-  table.insert(nodes, tnode({ "", indent_str .. '"""', "" }))
-  local snippet = snode(nil, nodes)
-  snippet.old_state = old_state or {}
-  return snippet
-end
+local function make_cyclopts_snip()
+  return fmt(([[from cyclopts import App
+
+_app = App()
 
 
-local function documented_fn()
-  return fmt(
-    "def {}({}) -> {}:\n{}",
-    { inode(1, "func_name"), inode(2),
-      inode(3, "None"),
-      dnode(4, py_func_doc, { 2, 3 }) }
+@_app.command
+def {}({}):
+^t{}
+
+
+if __name__ == "__main__":
+^t_app()
+]]):gsub('%^t', indent_str),
+    { inode(1, "command"), inode(2, 'arguments'), inode(3, 'pass') }
   )
 end
 
-local function clic()
-  return fmt([[
-  from cyclopts import App
+local function make_typer_snip()
+  return fmt(([[from typer import Typer
+
+_app = Typer()
 
 
-  _app = App()
+@_app.command()
+def {}({}):
+^t{}
 
-  @_app.command()
-  {}
 
-
-  if __name__ == "__main__":
-  {}_app()
-  ]], { inode(1, "main_function"), tnode({ indent_str }) }
+if __name__ == "__main__":
+^t_app()
+]]):gsub('%^t', indent_str),
+    { inode(1, "command"), inode(2, 'arguments'), inode(3, 'pass') }
   )
 end
 
-local function bare_cli()
-  local content = [[
-  """{}"""
+local function make_argparse_snip()
+  local content = [["""{}"""
   import argparse
 
 
@@ -139,46 +124,50 @@ local function bare_cli()
   })
 end
 
+local function get_cli_snip()
+  local tool = get_cli_tool()
+  local cli_tmpl_map = {
+    ['cyclopts'] = make_cyclopts_snip,
+    ['typer'] = make_typer_snip,
+    ['argparse'] = make_argparse_snip,
+  }
+  return cli_tmpl_map[tool]()
+end
+
+
+---------------------
+-- Pytest snippets --
+---------------------
+local function get_pytest_function()
+  local tmpl = [[@pytest.mark.parametrize("{}",[{}])
+def test_{}({}):
+^t{}
+]]
+  return fmt(
+    tmpl:gsub('%^t', indent_str),
+    { inode(1), inode(2), inode(3), rep(1), inode(4) }
+  )
+end
+
+local function get_pytest_method()
+  local tmpl = [[@pytest.mark.parametrize("{}",[{}])
+def test_{}(self, {}):
+^t{}
+]]
+  return fmt(
+    tmpl:gsub('%^t', indent_str),
+    { inode(1), inode(2), inode(3), rep(1), inode(4) }
+  )
+end
+
+local function create_fixture()
+  return "@pytest.fixture${1:(scope=\"${2|function,class,module,package,session|}\")}"
+end
+
 
 return {
-  luasnip.parser.parse_snippet(
-    { trig = "mn", dscr = "Creates main guard" },
-    'if __name__ == "__main__":\n' .. indent_str
-  ),
-  luasnip.parser.parse_snippet(
-    { trig = "tfx", dscr = "PyTest fixture" },
-    "@pytest.fixture${1:(scope=\"${2|function,class,module,package,session|}\")}"
-  ),
-  snip(
-    { trig = "tfpar", dscr = "PyTest parametrize for functions" },
-    fmt(
-      "@pytest.mark.parametrize(\"{}\",[{}])\n" ..
-      "def test_{}({}):\n{}",
-      { inode(1), inode(2), inode(3), rep(1), inode(4) }
-    )),
-  snip(
-    { trig = "tmpar", dscr = "PyTest parametrize for methods" },
-    fmt(
-      "@pytest.mark.parametrize(\"{}\",[{}])\n" ..
-      "def test_{}(self, {}):\n{}",
-      { inode(1), inode(2), inode(3), rep(1), inode(4) }
-    )),
-  snip({ trig = "cls", dscr = "Documented class" }, fmt(
-    "class {}:\n{}\n" .. indent_str .. "def __init__(self, {}):\n{}",
-    { inode(1, "ClassName"), dnode(2, py_class_doc), inode(3),
-      dnode(4, py_func_doc, { 3 }, { user_args = { 2 } }) }
-  )),
-  snip({ trig = "fn", dscr = "Documented function" }, documented_fn()),
-  snip({ trig = "meth", dscr = "Documented method" }, fmt(
-    "def {}(self, {}) -> {}:\n{}",
-    { inode(1, "func_name"), inode(2),
-      inode(3, "None"),
-      dnode(4, py_func_doc, { 2, 3 }, { user_args = { 1 } }) }
-  )),
-  snip({ trig = "__in", dscr = "Class init" }, fmt(
-    indent_str .. "def __init__(self, {}):\n{}",
-    { inode(1), dnode(2, py_func_doc) }
-  )),
-  snip({ trig = "cli", dscr = "Basic CLI" }, bare_cli()),
-  snip({ trig = "clic", dscr = "CLI with cyclopts" }, clic()),
+  snip({ trig = 'cli', dscr = 'Command line template' }, get_cli_snip()),
+  snip({ trig = 'tstfn', dscr = 'PyTest parametrize function' }, get_pytest_function()),
+  snip({ trig = 'tstmt', dscr = 'PyTest parametrize function' }, get_pytest_method()),
+  luasp.parse_snippet({ trig = 'tstfx', descr = 'Pytest fixture'}, create_fixture()),
 }

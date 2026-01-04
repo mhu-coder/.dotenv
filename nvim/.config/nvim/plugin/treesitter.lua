@@ -1,61 +1,23 @@
-local langs = { 'c', 'cpp', 'lua', 'python', 'rust', 'latex', 'vim', 'vimdoc' }
-require('nvim-treesitter.configs').setup {
-  modules = {},
-  ensure_installed = langs,
-  auto_install = true,
-  highlight = { enable = true },
-  indent = { enable = true, disable = { 'python' } },
-  incremental_selection = {
-    enable = true,
-    keymaps = {
-      init_selection = '<c-space>',
-      node_incremental = '<c-space>',
-      scope_incremental = '<c-s>',
-      node_decremental = '<c-\\>',
-    },
-  },
-  textobjects = {
-    select = {
-      enable = true,
-      lookahead = true,
-      keymaps = {
-        ['ia'] = '@parameter.inner',
-        ['aa'] = '@parameter.outer',
-        ['if'] = '@function.inner',
-        ['af'] = '@function.outer',
-        ['ic'] = '@class.inner',
-        ['ac'] = '@class.outer',
-      },
-    },
-    move = {
-      enable = true,
-      set_jumps = true, -- whether to set jumps in the jumplist
-      goto_next_start = {
-        [']w'] = 'function.outer',
-        [']W'] = '@class.outer',
-      },
-      goto_next_end = {
-        [']e'] = '@function.outer',
-        [']E'] = '@class.outer',
-      },
-      goto_previous_start = {
-        ['[w'] = '@function.outer',
-        ['[W'] = '@class.outer',
-      },
-      goto_previous_end = {
-        ['[e'] = '@function.outer',
-        ['[E'] = '@class.outer',
-      },
-    },
-    swap = { enable = false },
-  },
-  sync_install = false,
-  ignore_install = {},
-}
+local langs = { 'c', 'cpp', 'lua', 'python', 'rust', 'latex' }
+local ts = require('nvim-treesitter')
+local installed = ts.get_installed()
+local to_install = vim.iter(langs):filter(
+  function(parser) return not vim.tbl_contains(installed, parser) end
+):totable()
+ts.install(to_install)
 
--- configure folds to rely on treesitter
-vim.cmd([[
-  set foldmethod=expr
-  set foldexpr=nvim_treesitter#foldexpr()
-  set nofoldenable
-]])
+vim.api.nvim_create_autocmd("FileType", {
+  desc = "User: enable treesitter highlighting",
+  callback = function(ctx)
+    -- highlights
+    local hasStarted = pcall(vim.treesitter.start) -- errors for filetypes with no parser
+
+    -- indent
+    local noIndent = {}
+    if hasStarted and not vim.list_contains(noIndent, ctx.match) then
+      vim.wo[0][0].foldexpr = 'v:lua.vim.treesitter.foldexpr()'
+      vim.wo[0][0].foldmethod = 'expr'
+      vim.bo.indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
+    end
+  end,
+})

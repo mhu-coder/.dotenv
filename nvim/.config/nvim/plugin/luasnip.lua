@@ -54,6 +54,6 @@ vim.keymap.set(
   "<leader><leader>s",
   "<cmd>source ~/.config/nvim/plugin/luasnip.lua<CR>"
 )
-
+local snippet_dir = vim.fn.stdpath("config") .. '/snippets'
 require("luasnip.loaders.from_vscode").lazy_load()
-require("luasnip.loaders.from_lua").load({ paths = { "~/.config/nvim/snippets" } })
+require("luasnip.loaders.from_lua").load({ paths = { snippet_dir } })
