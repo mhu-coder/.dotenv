@@ -12,6 +12,7 @@ blink.setup({
     default = { 'lsp', 'snippets', 'buffer' },
   },
   keymap = { -- passthrough keys below
+    preset = 'none',
     ['<c-k>'] = { 'fallback' },
     ['<c-j>'] = { 'fallback' },
   }
