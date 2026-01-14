@@ -57,6 +57,7 @@ vim.pack.add({
   'https://github.com/saghen/blink.cmp', -- native completion only supports 1 source
   'https://github.com/danymat/neogen',   -- code annotation
   'https://github.com/tpope/vim-fugitive',
+  'https://github.com/stevearc/conform.nvim', -- code formatting
   -- 'https://github.com/mfussenegger/nvim-dap',
   -- 'https://github.com/rcarriga/nvim-dap-ui',
   -- 'https://github.com/mfussenegger/nvim-dap-python',
